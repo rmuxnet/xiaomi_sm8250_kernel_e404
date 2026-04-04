@@ -30,6 +30,11 @@ struct e404_attributes e404_data = {
     .batt_profile               = 1,
     .kgsl_skip_zeroing          = 0,
     .file_sync                  = 1,
+    .bg_blocklist               = "com.shopee.id,com.lazada.android,com.tokopedia.tkpd",
+    .cib_little_freq            = 1420800,
+    .cib_big_freq               = 1056000,
+    .cib_prime_freq             = 844800,
+    .cib_duration_ms            = 58,
 #ifdef CONFIG_BOARD_PIPA
     .panel_oem_width_pipa       = 1662,
     .panel_oem_height_pipa      = 2660,
@@ -41,7 +46,6 @@ struct e404_attributes e404_data = {
     .panel_oem_width            = 700,
     .panel_oem_height           = 1550,
 #endif
-    .bg_blocklist               = "com.shopee.id,com.lazada.android,com.tokopedia.tkpd",
 };
 
 static int  blocked_cnt;
@@ -199,11 +203,19 @@ E404_ATTR_RO(panel_oem_height);
 
 E404_ATTR_RW(kgsl_skip_zeroing);
 E404_ATTR_RW(file_sync);
+E404_ATTR_RW(cib_little_freq);
+E404_ATTR_RW(cib_big_freq);
+E404_ATTR_RW(cib_prime_freq);
+E404_ATTR_RW(cib_duration_ms);
 
 static struct attribute *e404_attrs[] = {
     &kgsl_skip_zeroing_attr.attr,
     &file_sync_attr.attr,
     &bg_blocklist_attr.attr,
+    &cib_little_freq_attr.attr,
+    &cib_big_freq_attr.attr,
+    &cib_prime_freq_attr.attr,
+    &cib_duration_ms_attr.attr,
     NULL,
 };
 

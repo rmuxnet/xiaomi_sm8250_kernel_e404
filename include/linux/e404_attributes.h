@@ -21,6 +21,10 @@ struct e404_attributes {
     int kgsl_skip_zeroing;
     int file_sync;
     char bg_blocklist[E404_BLOCKLIST_STRLEN];
+    int cib_little_freq;
+    int cib_big_freq;
+    int cib_prime_freq;
+    int cib_duration_ms;
 #ifdef CONFIG_BOARD_PIPA
     int panel_width_pipa;
     int panel_height_pipa;
