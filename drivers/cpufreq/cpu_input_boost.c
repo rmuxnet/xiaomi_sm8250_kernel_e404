@@ -13,18 +13,13 @@
 #include <drm/drm_notifier_mi.h>
 #include <linux/slab.h>
 #include <linux/version.h>
+#include <linux/e404_attributes.h>
 
 /* The sched_param struct is located elsewhere in newer kernels */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
 #include <uapi/linux/sched/types.h>
 #endif
 
-static unsigned int input_boost_freq_little __read_mostly =
-	CONFIG_INPUT_BOOST_FREQ_LP;
-static unsigned int input_boost_freq_big __read_mostly =
-	CONFIG_INPUT_BOOST_FREQ_PERF;
-static unsigned int input_boost_freq_prime __read_mostly =
-	CONFIG_INPUT_BOOST_FREQ_PRIME;
 static unsigned int max_boost_freq_little __read_mostly =
 	CONFIG_MAX_BOOST_FREQ_LP;
 static unsigned int max_boost_freq_big __read_mostly =
@@ -32,8 +27,6 @@ static unsigned int max_boost_freq_big __read_mostly =
 static unsigned int max_boost_freq_prime __read_mostly =
 	CONFIG_MAX_BOOST_FREQ_PRIME;
 
-static unsigned short input_boost_duration __read_mostly =
-	CONFIG_INPUT_BOOST_DURATION_MS;
 static unsigned short wake_boost_duration __read_mostly =
 	CONFIG_WAKE_BOOST_DURATION_MS;
 
@@ -47,7 +40,6 @@ module_param(cpu_freq_min_little, uint, 0644);
 module_param(cpu_freq_min_big, uint, 0644);
 module_param(cpu_freq_min_prime, uint, 0644);
 
-module_param(input_boost_duration, short, 0644);
 module_param(wake_boost_duration, short, 0644);
 
 enum {
@@ -82,11 +74,11 @@ static unsigned int get_input_boost_freq(struct cpufreq_policy *policy)
 	unsigned int freq;
 
 	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask))
-		freq = input_boost_freq_little;
+		freq = e404_data.cib_little_freq;
 	else if (cpumask_test_cpu(policy->cpu, cpu_perf_mask))
-		freq = input_boost_freq_big;
+		freq = e404_data.cib_big_freq;
 	else
-		freq = input_boost_freq_prime;
+		freq = e404_data.cib_prime_freq;
 	return min(freq, policy->max);
 }
 
@@ -123,12 +115,12 @@ static void __cpu_input_boost_kick(struct boost_drv *b)
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
 
-	if (!input_boost_duration)
+	if (!e404_data.cib_duration_ms)
 		return;
 
 	set_bit(INPUT_BOOST, &b->state);
 	if (!mod_delayed_work(system_unbound_wq, &b->input_unboost,
-			      msecs_to_jiffies(input_boost_duration)))
+			      msecs_to_jiffies(e404_data.cib_duration_ms)))
 		wake_up(&b->boost_waitq);
 }
 
