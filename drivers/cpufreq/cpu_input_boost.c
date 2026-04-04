@@ -108,15 +108,14 @@ static int cpu_boost_thread(void *data)
 
 	sched_setscheduler_nocheck(current, SCHED_FIFO, &sched_max_rt_prio);
 
-	while (1) {
-		bool should_stop = false;
+	while (!kthread_should_stop()) {
 		unsigned long curr_state;
 
 		wait_event(b->boost_waitq,
 			(curr_state = READ_ONCE(b->state)) != old_state ||
-			(should_stop = kthread_should_stop()));
+			kthread_should_stop());
 
-		if (should_stop)
+		if (kthread_should_stop())
 			break;
 
 		old_state = curr_state;
@@ -142,8 +141,8 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 	}
 
 	/*
-	 * Boost to policy->max if the boost frequency is higher. When
-	 * unboosting, set policy->min to the absolute min freq for the CPU.
+	 * Apply input boost by raising policy->min.
+	 * When not boosting, restore to the minimum frequency.
 	 */
 	if (test_bit(INPUT_BOOST, &b->state))
 		policy->min = get_input_boost_freq(policy);
@@ -284,7 +283,7 @@ static int __init cpu_input_boost_init(void)
 		goto unregister_handler;
 	}
 
-	thread = kthread_run(cpu_boost_thread, b, "cpu_boostd");
+	thread = kthread_run(cpu_boost_thread, b, "cpu_input_boostd");
 	if (IS_ERR(thread)) {
 		ret = PTR_ERR(thread);
 		pr_err("Failed to start CPU boost thread, err: %d\n", ret);

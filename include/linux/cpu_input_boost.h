@@ -5,7 +5,7 @@
 #ifndef _CPU_INPUT_BOOST_H_
 #define _CPU_INPUT_BOOST_H_
 
-#ifdef CONFIG_CPU_INPUT_BOOST
+#ifdef CONFIG_E404_ATTRIBUTES
 void cpu_input_boost_kick(void);
 #else
 static inline void cpu_input_boost_kick(void)
