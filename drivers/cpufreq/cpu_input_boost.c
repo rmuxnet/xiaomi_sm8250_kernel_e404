@@ -27,7 +27,7 @@ enum {
 struct boost_drv {
 	struct delayed_work input_unboost;
 	struct notifier_block cpu_notif;
-	struct notifier_block msm_drm_notif;
+	struct notifier_block mi_drm_notif;
 	wait_queue_head_t boost_waitq;
 	unsigned long state;
 };
@@ -153,10 +153,10 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 	return NOTIFY_OK;
 }
 
-static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
+static int mi_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 			  void *data)
 {
-	struct boost_drv *b = container_of(nb, typeof(*b), msm_drm_notif);
+	struct boost_drv *b = container_of(nb, typeof(*b), mi_drm_notif);
 	int *blank = ((struct mi_drm_notifier *)data)->data;
 
 	/* Parse framebuffer blank events as soon as they occur */
@@ -276,9 +276,9 @@ static int __init cpu_input_boost_init(void)
 		goto unregister_cpu_notif;
 	}
 
-	b->msm_drm_notif.notifier_call = msm_drm_notifier_cb;
-	b->msm_drm_notif.priority = INT_MAX;
-	ret = mi_drm_register_client(&b->msm_drm_notif);
+	b->mi_drm_notif.notifier_call = mi_drm_notifier_cb;
+	b->mi_drm_notif.priority = INT_MAX;
+	ret = mi_drm_register_client(&b->mi_drm_notif);
 	if (ret) {
 		pr_err("Unable to register mi_drm notifier: %d\n", ret);
 		goto unregister_handler;
@@ -294,7 +294,7 @@ static int __init cpu_input_boost_init(void)
 	return 0;
 
 unregister_fb_notif:
-	mi_drm_unregister_client(&b->msm_drm_notif);
+	mi_drm_unregister_client(&b->mi_drm_notif);
 unregister_handler:
 	input_unregister_handler(&cpu_input_boost_input_handler);
 unregister_cpu_notif:
