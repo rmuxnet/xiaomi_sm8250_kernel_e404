@@ -8951,7 +8951,7 @@ simple:
 		put_prev_task(rq, prev);
 
 	for_each_sched_entity(se)
-		set_next_entity(cfs_rq_of(se), se);
+		set_next_entity(cfs_rq_of(se), se, true);
 
 done: __maybe_unused;
 #ifdef CONFIG_SMP
