@@ -43,12 +43,16 @@ char *lsm_names;
 static __initdata char chosen_lsm[SECURITY_NAME_MAX + 1] =
 	CONFIG_DEFAULT_SECURITY;
 
-static void __init major_lsm_init(void)
+static void __init do_security_initcalls(void)
 {
-	struct lsm_info *lsm;
+	initcall_t call;
+	initcall_entry_t *ce;
 
-	for (lsm = __start_lsm_info; lsm < __end_lsm_info; lsm++) {
-		lsm->init();
+	ce = __start_lsm_info;
+	while (ce < __end_lsm_info) {
+		call = initcall_from_entry(ce);
+		call();
+		ce++;
 	}
 }
 
@@ -78,7 +82,7 @@ int __init security_init(void)
 	/*
 	 * Load all the remaining security modules.
 	 */
-	major_lsm_init();
+	do_security_initcalls();
 
 	return 0;
 }
