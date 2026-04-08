@@ -2072,7 +2072,6 @@ extern void security_add_hooks(struct security_hook_list *hooks, int count,
 				char *lsm);
 
 struct lsm_info {
-	const char *name;	/* Required. */
 	int (*init)(void);	/* Required. */
 };
 
