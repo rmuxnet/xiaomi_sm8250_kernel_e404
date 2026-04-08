@@ -3090,15 +3090,15 @@ And public attribution of xiaomi platforms(like pipa and so and)
 		interrupts = <68 0x2002>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&bq2597x_master_int_default>;
-		/*ti,bq2597x,bat-ovp-disable;*/
+		ti,bq2597x,bat-ovp-disable;
 		ti,bq2597x,bat-ovp-alarm-disable;
 		ti,bq2597x,bat-ocp-disable;
 		ti,bq2597x,bat-ocp-alarm-disable;
 		ti,bq2597x,bat-ucp-alarm-disable;
 		ti,bq2597x,bat-ucp-disable;
-		/*ti,bq2597x,bus-ovp-alarm-disable;
+		ti,bq2597x,bus-ovp-alarm-disable;
 		ti,bq2597x,bus-ocp-disable;
-		ti,bq2597x,bus-ocp-alarm-disable;*/
+		ti,bq2597x,bus-ocp-alarm-disable;
 		ti,bq2597x,bat-therm-disable;
 		ti,bq2597x,bus-therm-disable;
 		ti,bq2597x,die-therm-disable;
