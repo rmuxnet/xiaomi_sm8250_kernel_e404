@@ -710,7 +710,6 @@ KBUILD_CFLAGS   += -mcpu=cortex-a55
 KBUILD_AFLAGS   += -mcpu=cortex-a55
 else
 KBUILD_CFLAGS	+= -fgraphite-identity -floop-nest-optimize
-KBUILD_CFLAGS	+= -fipa-pta -fgcse-sm
 
 KBUILD_CFLAGS   += -mcpu=cortex-a76.cortex-a55
 KBUILD_AFLAGS   += -mcpu=cortex-a76.cortex-a55
