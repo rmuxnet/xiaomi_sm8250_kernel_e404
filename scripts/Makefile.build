@@ -421,6 +421,7 @@ $(sort $(subdir-obj-y)): $(subdir-ym) ;
 #
 # Rule to compile a set of .o files into one .o file
 #
+ifdef builtin-target
 
 # built-in.a archives are made with no symbol table or index which
 # makes them small and fast, but unable to be used by the linker.
@@ -430,10 +431,11 @@ quiet_cmd_ar_builtin = AR      $@
       cmd_ar_builtin = rm -f $@; \
                      $(AR) rcSTP$(KBUILD_ARFLAGS) $@ $(filter $(real-obj-y), $^)
 
-$(obj)/built-in.a: $(real-obj-y) FORCE
+$(builtin-target): $(real-obj-y) FORCE
 	$(call if_changed,ar_builtin)
 
 targets += $(builtin-target)
+endif # builtin-target
 
 #
 # Rule to create modules.order file
@@ -451,10 +453,13 @@ $(modorder-target): $(subdir-ym) FORCE
 #
 # Rule to compile a set of .o files into one .a file
 #
-$(obj)/lib.a: $(lib-y) FORCE
+ifdef lib-target
+$(lib-target): $(lib-y) FORCE
 	$(call if_changed,ar)
 
 targets += $(lib-target)
+
+endif
 
 quiet_cmd_link_multi-m = LD [M]  $@
 cmd_link_multi-m = $(LD) $(ld_flags) -r -o $@ $(filter %.o,$^) $(cmd_secanalysis)
