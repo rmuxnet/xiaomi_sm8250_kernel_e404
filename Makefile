@@ -942,33 +942,6 @@ KBUILD_CFLAGS	+= $(CC_FLAGS_SCS)
 export CC_FLAGS_SCS
 endif
 
-ifeq ($(cc-name),clang)
-ifdef CONFIG_LTO_CLANG
-ifdef CONFIG_LTO_CLANG_THIN
-CC_FLAGS_LTO	+= -flto=thin -fsplit-lto-unit -funified-lto
-KBUILD_LDFLAGS	+= --thinlto-jobs=$(nproc --all)
-else
-CC_FLAGS_LTO	+= -flto
-endif
-CC_FLAGS_LTO	+= -fvisibility=hidden
-
-CC_FLAGS_LTO	+= -fsplit-machine-functions
-
-# Limit inlining across translation units to reduce binary size
-KBUILD_LDFLAGS += $(call cc-option,-mllvm -import-instr-limit=40)
-
-# Check for frame size exceeding threshold during prolog/epilog insertion.
-ifneq ($(CONFIG_FRAME_WARN),0)
-KBUILD_LDFLAGS	+= -plugin-opt=-warn-stack-size=$(CONFIG_FRAME_WARN)
-endif
-endif
-
-ifdef CONFIG_LTO
-KBUILD_CFLAGS	+= $(CC_FLAGS_LTO)
-export CC_FLAGS_LTO
-endif
-endif
-
 # arch Makefile may override CC so keep this after arch Makefile is included
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 
@@ -1514,7 +1487,7 @@ MRPROPER_FILES += .config .config.old .version \
 		  Module.symvers tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS \
 		  signing_key.pem signing_key.priv signing_key.x509	\
 		  x509.genkey extra_certificates signing_key.x509.keyid	\
-		  signing_key.x509.signer vmlinux-gdb.py .thinlto-cache
+		  signing_key.x509.signer vmlinux-gdb.py
 
 # clean - Delete most, but leave enough to build external modules
 #
@@ -1748,7 +1721,7 @@ $(clean-dirs):
 	$(Q)$(MAKE) $(clean)=$(patsubst _clean_%,%,$@)
 
 clean:	rm-dirs := $(MODVERDIR)
-clean: rm-files := $(KBUILD_EXTMOD)/Module.symvers $(KBUILD_EXTMOD)/.thinlto-cache
+clean: rm-files := $(KBUILD_EXTMOD)/Module.symvers
 
 PHONY += help
 help:
