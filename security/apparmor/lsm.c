@@ -1611,6 +1611,4 @@ alloc_out:
 	return error;
 }
 
-DEFINE_LSM(apparmor) = {
-	.init = apparmor_init,
-};
+security_initcall(apparmor_init);

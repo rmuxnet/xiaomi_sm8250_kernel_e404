@@ -550,6 +550,4 @@ static int __init tomoyo_init(void)
 	return 0;
 }
 
-DEFINE_LSM(tomoyo) = {
-	.init = tomoyo_init,
-};
+security_initcall(tomoyo_init);
