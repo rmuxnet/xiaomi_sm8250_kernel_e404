@@ -15,21 +15,15 @@ AK3_DIR="$BASE_DIR/AnyKernel3"
 [[ ! -d "$AK3_DIR" ]] && echo "!! Please Provide AnyKernel3 !!" && exit 1
 
 # Parse command line arguments
-TYPE="CI"
+if [[ "$(git rev-parse --abbrev-ref HEAD)" == *bpf* ]]; then
+    TYPE="Weekly-BPF"
+else
+    TYPE="Weekly"
+fi
+
 TC="Unknown-Clang"
 TARGET=""
 DEFCONFIG=""
-
-case "$*" in
-    *st*)
-        git checkout main
-        TYPE="STABLE" ;;
-    *dev*) TYPE="DEV" ;;
-    *sus*) 
-        git checkout main-susfs
-        TYPE="SUSFS" 
-        ;;
-esac
 
 case "$*" in
     *aosp*)
@@ -48,7 +42,7 @@ case "$*" in
         export PATH="$BASE_DIR/toolchains/lilium-clang/bin:$PATH"
         TC="Lilium-Clang"
         ;;
-    *eva*)
+    *evagcc*)
         GCC64_DIR="$BASE_DIR/toolchains/gcc/gcc-arm64/bin/"
         GCC32_DIR="$BASE_DIR/toolchains/gcc/gcc-arm/bin/"
         export PATH="$GCC64_DIR:$GCC32_DIR:/usr/bin:$PATH"
@@ -81,6 +75,18 @@ case "$*" in
 esac
 
 # Device selection using arrays
+if [[ "$*" == *gcc* ]]; then
+    declare -A DEVICE_MAP=(
+        ["munch"]="MUNCH:vendor/munch_gcc_defconfig"
+        ["alioth"]="ALIOTH:vendor/alioth_gcc_defconfig"
+        ["apollo"]="APOLLO:vendor/apollo_gcc_defconfig"
+        ["pipa"]="PIPA:vendor/pipa_gcc_defconfig"
+        ["lmi"]="LMI:vendor/lmi_gcc_defconfig"
+        ["umi"]="UMI:vendor/umi_gcc_defconfig"
+        ["cmi"]="CMI:vendor/cmi_gcc_defconfig"
+        ["cas"]="CAS:vendor/cas_gcc_defconfig"
+    )
+else
     declare -A DEVICE_MAP=(
         ["munch"]="MUNCH:vendor/munch_defconfig"
         ["alioth"]="ALIOTH:vendor/alioth_defconfig"
@@ -91,6 +97,7 @@ esac
         ["cmi"]="CMI:vendor/cmi_defconfig"
         ["cas"]="CAS:vendor/cas_defconfig"
     )
+fi
 
 for device in "${!DEVICE_MAP[@]}"; do
     if [[ "$*" == *"$device"* ]]; then
@@ -126,7 +133,7 @@ export SUBARCH="arm64"
 export TZ="Asia/Jakarta"
 
 # Clean previous builds
-rm -rf ../*E404R*.zip
+rm -rf ../*E404*.zip
 
 # Function definitions
 build_msg() {
