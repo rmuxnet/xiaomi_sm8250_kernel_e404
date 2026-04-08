@@ -69,27 +69,28 @@ archive_builtin()
 	fi
 }
 
-# If CONFIG_LTO_CLANG is selected, collect generated symbol versions into
-# .tmp_symversions
-modversions()
+# If CONFIG_LTO_CLANG is selected, generate a linker script to ensure correct
+# ordering of initcalls, and with CONFIG_MODVERSIONS also enabled, collect the
+# previously generated symbol versions into the same script.
+lto_lds()
 {
 	if [ -z "${CONFIG_LTO_CLANG}" ]; then
 		return
 	fi
 
-	if [ -z "${CONFIG_MODVERSIONS}" ]; then
-		return
-	fi
+	${srctree}/scripts/generate_initcall_order.pl \
+		built-in.a ${KBUILD_VMLINUX_LIBS} \
+		> .tmp_lto.lds
 
-	rm -f .tmp_symversions
-
-	for a in built-in.a ${KBUILD_VMLINUX_LIBS}; do
-		for o in $(${AR} t $a); do
-			if [ -f ${o}.symversions ]; then
-				cat ${o}.symversions >> .tmp_symversions
-			fi
+	if [ -n "${CONFIG_MODVERSIONS}" ]; then
+		for a in built-in.a ${KBUILD_VMLINUX_LIBS}; do
+			for o in $(${AR} t $a); do
+				if [ -f ${o}.symversions ]; then
+					cat ${o}.symversions >> .tmp_lto.lds
+				fi
+			done
 		done
-	done
+	fi
 
 	echo "-T .tmp_lto.lds"
 }
@@ -113,7 +114,7 @@ modpost_link()
 		info LTO vmlinux.o
 	fi
 
-	${LD} ${KBUILD_LDFLAGS} -r -o ${1} $(modversions) ${objects}
+	${LD} ${KBUILD_LDFLAGS} -r -o ${1} $(lto_lds) ${objects}
 }
 
 # Link of vmlinux
@@ -228,7 +229,7 @@ cleanup()
 {
 	rm -f .tmp_System.map
 	rm -f .tmp_kallsyms*
-	rm -f .tmp_symversions
+	rm -f .tmp_lto.lds
 	rm -f .tmp_vmlinux*
 	rm -f built-in.a
 	rm -f System.map
