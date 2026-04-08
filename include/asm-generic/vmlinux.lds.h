@@ -817,14 +817,14 @@
 		__con_initcall_end = .;
 
 #define SECURITY_INITCALL						\
-		__start_lsm_info = .;					\
-		KEEP(*(.lsm_info.init))					\
-		__end_lsm_info = .;
+		__security_initcall_start = .;				\
+		KEEP(*(.security_initcall.init))			\
+		__security_initcall_end = .;
 
 /* Older linker script style for security init. */
 #define SECURITY_INIT							\
-	.lsm_info.init : AT(ADDR(.lsm_info.init) - LOAD_OFFSET) {	\
-		LSM_INFO							\
+	.security_initcall.init : AT(ADDR(.security_initcall.init) - LOAD_OFFSET) { \
+		SECURITY_INITCALL					\
 	}
 
 #ifdef CONFIG_BLK_DEV_INITRD

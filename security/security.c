@@ -51,9 +51,9 @@ static void __init do_security_initcalls(void)
 	initcall_t call;
 	initcall_entry_t *ce;
 
-	ce = __start_lsm_info;
+	ce = __security_initcall_start;
 	trace_initcall_level("security");
-	while (ce < __end_lsm_info) {
+	while (ce < __security_initcall_end) {
 		call = initcall_from_entry(ce);
 		trace_initcall_start(call);
 		ret = call();
