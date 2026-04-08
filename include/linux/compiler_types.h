@@ -310,6 +310,10 @@ struct ftrace_likely_data {
 # define __gnu_inline
 #endif
 
+#ifndef __norecordmcount
+#define __norecordmcount
+#endif
+
 #ifndef __nocfi
 #define __nocfi
 #endif
