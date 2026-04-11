@@ -954,7 +954,7 @@ CC_FLAGS_LTO	+= -fvisibility=hidden
 CC_FLAGS_LTO	+= -fsplit-machine-functions
 
 # Limit inlining across translation units to reduce binary size
-KBUILD_LDFLAGS += $(call cc-option,-mllvm -import-instr-limit=40)
+KBUILD_LDFLAGS += $(call cc-option,-mllvm -import-instr-limit=10)
 
 # Check for frame size exceeding threshold during prolog/epilog insertion.
 ifneq ($(CONFIG_FRAME_WARN),0)
