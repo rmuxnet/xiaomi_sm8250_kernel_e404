@@ -801,6 +801,8 @@ KBUILD_CFLAGS += $(call cc-disable-warning, address)
 KBUILD_CFLAGS += $(call cc-disable-warning, array-compare)
 KBUILD_CFLAGS += $(call cc-disable-warning, unused-result)
 KBUILD_CFLAGS += $(call cc-disable-warning, dangling-pointer)
+KBUILD_CFLAGS += $(call cc-disable-warning, maybe-uninitialized)
+KBUILD_CFLAGS += $(call cc-disable-warning, address-of-packed-member)
 endif
 
 # These warnings generated too much noise in a regular build.
