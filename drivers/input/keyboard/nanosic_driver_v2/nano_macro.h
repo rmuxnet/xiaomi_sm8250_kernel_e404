@@ -330,22 +330,4 @@ struct xiaomi_keyboard_data {
 	struct work_struct suspend_work;
 };
 
-static struct xiaomi_keyboard_data *mdata;
-
-__attribute__((unused)) static int xiaomi_keyboard_init(
-	struct nano_i2c_client *i2c_client);
-__attribute__((unused)) static void
-keyboard_resume_work(struct work_struct *work);
-__attribute__((unused)) static void
-keyboard_suspend_work(struct work_struct *work);
-__attribute__((unused)) static int
-xiaomi_keyboard_pm_suspend(struct device *dev);
-__attribute__((unused)) static int
-xiaomi_keyboard_pm_resume(struct device *dev);
-__attribute__((unused)) static int xiaomi_keyboard_remove(void);
-__attribute__((unused)) static const struct dev_pm_ops xiaomi_keyboard_pm_ops;
-__attribute__((unused)) static int
-keyboard_drm_notifier_callback(struct notifier_block *self, unsigned long event,
-			       void *data);
-
 #endif /* _ALBRX_H_ */

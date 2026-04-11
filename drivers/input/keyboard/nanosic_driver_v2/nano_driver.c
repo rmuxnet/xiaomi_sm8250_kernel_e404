@@ -34,6 +34,17 @@
 #include <linux/interrupt.h>
 #include "nano_macro.h"
 
+static struct xiaomi_keyboard_data *mdata;
+
+static int xiaomi_keyboard_init(struct nano_i2c_client *i2c_client);
+static void keyboard_resume_work(struct work_struct *work);
+static void keyboard_suspend_work(struct work_struct *work);
+static int xiaomi_keyboard_pm_suspend(struct device *dev);
+static int xiaomi_keyboard_pm_resume(struct device *dev);
+static const struct dev_pm_ops xiaomi_keyboard_pm_ops;
+static int keyboard_drm_notifier_callback(struct notifier_block *self, unsigned long event,
+			       void *data);
+
 static bool initial = false;
 struct nano_i2c_client *gI2c_client = NULL;
 
@@ -384,18 +395,6 @@ static const struct dev_pm_ops xiaomi_keyboard_pm_ops = {
 	.suspend = xiaomi_keyboard_pm_suspend,
 	.resume = xiaomi_keyboard_pm_resume,
 };
-
-static int xiaomi_keyboard_remove(void)
-{
-	dbgprint(ALERT_LEVEL, "xiaomi_keyboard_remove: enter\n");
-	mi_drm_unregister_client(&mdata->drm_notif);
-	destroy_workqueue(mdata->event_wq);
-	if (mdata) {
-		kfree(mdata);
-		mdata = NULL;
-	}
-	return 0;
-}
 
 static int keyboard_drm_notifier_callback(struct notifier_block *self,
 					  unsigned long event, void *data)

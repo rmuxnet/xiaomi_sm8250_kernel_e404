@@ -14,6 +14,8 @@
 
 #include "f_qdss.h"
 
+static void *_qdss_ipc_log;
+
 static DEFINE_SPINLOCK(channel_lock);
 static LIST_HEAD(usb_qdss_ch_list);
 

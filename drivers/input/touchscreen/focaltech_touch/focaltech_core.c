@@ -89,6 +89,7 @@ static int irq_num;
 /*****************************************************************************
 * Global variable or extern global variabls/functions
 *****************************************************************************/
+static unsigned int XIAOMI_TP_DEBUG_EN = 0;
 struct fts_ts_data *fts_data;
 #if FTS_CHARGER_EN
 extern int fts_charger_mode_set(struct i2c_client *client, bool on);
