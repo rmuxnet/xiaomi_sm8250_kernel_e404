@@ -29,7 +29,6 @@
 
 #ifdef CONFIG_SMP
 static inline bool task_fits_max(struct task_struct *p, int cpu);
-static inline unsigned long boosted_task_util(struct task_struct *task);
 #endif /* CONFIG_SMP */
 
 #ifdef CONFIG_SCHED_WALT
@@ -717,6 +716,7 @@ sum_w_vruntime_add_paranoid(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
 	unsigned long weight;
 	s64 key, tmp;
+	struct rb_node *node;
 
 again:
 	weight = avg_vruntime_weight(cfs_rq, se->load.weight);
@@ -746,8 +746,9 @@ overflow:
 	cfs_rq->sum_w_vruntime = 0;
 	cfs_rq->sum_weight = 0;
 
-	for (struct rb_node *node = cfs_rq->tasks_timeline.rb_leftmost;
-	     node; node = rb_next(node))
+	for (node = cfs_rq->tasks_timeline.rb_leftmost;
+	     node;
+	     node = rb_next(node))
 		__sum_w_vruntime_add(cfs_rq, __node_2_se(node));
 
 	goto again;
@@ -877,8 +878,8 @@ bool update_entity_lag(struct cfs_rq *cfs_rq, struct sched_entity *se)
 	if (se->sched_delayed) {
 		/* previous vlag < 0 otherwise se would not be delayed */
 		vlag = max(vlag, se->vlag);
-		if (sched_feat(DELAY_ZERO))
-			vlag = min(vlag, 0);
+		if (sched_feat(DELAY_ZERO) && vlag > 0)
+    		vlag = 0;
 	}
 	ret = (vlag == se->vlag);
 	se->vlag = vlag;

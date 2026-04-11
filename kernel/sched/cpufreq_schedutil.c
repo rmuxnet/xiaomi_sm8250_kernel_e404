@@ -233,11 +233,9 @@ static inline unsigned long apply_dvfs_headroom(unsigned long util, int cpu)
     unsigned long capacity = capacity_orig_of(cpu);
     unsigned long delta, headroom, future, burst;
 
-    if (util >= capacity)
-        return util;
-
-	if (util < (capacity >> 4)) /* 6.25% */
+    if (util >= capacity || util < (capacity >> 4)) {
     	return util;
+	}
 
     /*
      * Quadratic taper the boosting at the top end as these are expensive
