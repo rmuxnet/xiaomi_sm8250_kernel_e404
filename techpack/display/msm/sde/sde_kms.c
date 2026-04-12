@@ -37,8 +37,10 @@
 #include "dsi_display.h"
 #include "dsi_drm.h"
 #include "sde_wb.h"
+#ifdef CONFIG_MSM_EXT_DISPLAY
 #include "dp_display.h"
 #include "dp_drm.h"
+#endif
 
 #include "sde_kms.h"
 #include "sde_core_irq.h"
@@ -1347,6 +1349,7 @@ static int _sde_kms_get_displays(struct sde_kms *sde_kms)
 					sde_kms->wb_display_count);
 	}
 
+#ifdef CONFIG_MSM_EXT_DISPLAY
 	/* dp */
 	sde_kms->dp_displays = NULL;
 	sde_kms->dp_display_count = dp_display_get_num_of_displays();
@@ -1363,14 +1366,16 @@ static int _sde_kms_get_displays(struct sde_kms *sde_kms)
 
 		sde_kms->dp_stream_count = dp_display_get_num_of_streams();
 	}
+#endif
 	return 0;
 
+#ifdef CONFIG_MSM_EXT_DISPLAY
 exit_deinit_dp:
 	kfree(sde_kms->dp_displays);
 	sde_kms->dp_stream_count = 0;
 	sde_kms->dp_display_count = 0;
 	sde_kms->dp_displays = NULL;
-
+#endif
 exit_deinit_wb:
 	kfree(sde_kms->wb_displays);
 	sde_kms->wb_display_count = 0;
@@ -1455,6 +1460,7 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 		.get_panel_vfp = NULL,
 		.cmd_receive = NULL,
 	};
+#ifdef CONFIG_MSM_EXT_DISPLAY
 	static const struct sde_connector_ops dp_ops = {
 		.set_info_blob = dp_connnector_set_info_blob,
 		.post_init  = dp_connector_post_init,
@@ -1474,6 +1480,7 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 		.update_pps = dp_connector_update_pps,
 		.cmd_receive = NULL,
 	};
+#endif
 	struct msm_display_info info;
 	struct drm_encoder *encoder;
 	void *display, *connector;
@@ -1484,10 +1491,13 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 		SDE_ERROR("invalid argument(s)\n");
 		return -EINVAL;
 	}
-
+#ifdef CONFIG_MSM_EXT_DISPLAY
 	max_encoders = sde_kms->dsi_display_count + sde_kms->wb_display_count +
 				sde_kms->dp_display_count +
 				sde_kms->dp_stream_count;
+#else
+	max_encoders = sde_kms->dsi_display_count + sde_kms->wb_display_count;
+#endif
 	if (max_encoders > ARRAY_SIZE(priv->encoders)) {
 		max_encoders = ARRAY_SIZE(priv->encoders);
 		SDE_ERROR("capping number of displays to %d", max_encoders);
@@ -1589,6 +1599,7 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 			sde_encoder_destroy(encoder);
 		}
 	}
+#ifdef CONFIG_MSM_EXT_DISPLAY
 	/* dp */
 	for (i = 0; i < sde_kms->dp_display_count &&
 			priv->num_encoders < max_encoders; ++i) {
@@ -1655,6 +1666,7 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 			priv->encoders[priv->num_encoders++] = encoder;
 		}
 	}
+#endif
 
 	return 0;
 }
