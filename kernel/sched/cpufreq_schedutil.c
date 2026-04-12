@@ -231,34 +231,34 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 static inline unsigned long apply_dvfs_headroom(unsigned long util, int cpu)
 {
     unsigned long capacity = capacity_orig_of(cpu);
-    unsigned long delta, headroom, future, burst;
+    unsigned long delta, future, boost, headroom;
 
     if (util >= capacity || util < (capacity >> 4)) {
     	return util;
 	}
 
-    /*
-     * Quadratic taper the boosting at the top end as these are expensive
-     * and we don't need that much of a big headroom as we approach max
-     * capacity
-     */
     delta = capacity - util;
-    headroom = (delta * delta) >> 12;
+
+    /* 2ms lookahead */
+    future = min(approximate_util_avg(util, 2000), capacity);
 
     /*
-     * If util is rising, add a small extra headroom to get ahead of it.
-     *
-     * Look 1ms into the future; if util is still climbing, boost headroom
-     * slightly (by 12.5%) but cap the addition at 1/8th of remaining
-     * capacity so we don't over-react near the top end.
+     * Base boost: always use the higher of current or predicted util.
+     * No hesitation.
      */
-    future = approximate_util_avg(util, 1000); /* 1 ms lookahead */
+    boost = max(util, future);
 
-    if (future > util) {
-        burst = future - util;
-        burst += burst >> 3;
-        headroom += min(burst, delta >> 3);
-    }
+    /*
+     * Add a 6.25% linear ramp bonus based on how fast we're rising.
+     */
+    headroom = boost - util;
+    headroom += headroom >> 4;
+
+    /*
+     * Quadratic taper near max to avoid going insane at top end.
+     */
+    delta = capacity - boost;
+    headroom += (delta * delta) >> 13;
 
     return min(util + headroom, capacity);
 }
