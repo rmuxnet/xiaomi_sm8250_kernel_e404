@@ -1,7 +1,7 @@
 /*
  * BQ27xxx battery monitor I2C driver
  *
- * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (C) 2015 Texas Instruments Incorporated - https://www.ti.com/
  *	Andrew F. Davis <afd@ti.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -182,7 +182,7 @@ static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
 		goto err_failed;
 
 	/* Schedule a polling after about 1 min */
-	queue_delayed_work(system_power_efficient_wq, &di->work, 60 * HZ);
+	schedule_delayed_work(&di->work, 60 * HZ);
 
 	i2c_set_clientdata(client, di);
 
@@ -217,9 +217,7 @@ static int bq27xxx_battery_i2c_remove(struct i2c_client *client)
 {
 	struct bq27xxx_device_info *di = i2c_get_clientdata(client);
 
-	if (client->irq)
-		free_irq(client->irq, di);
-
+	free_irq(client->irq, di);
 	bq27xxx_battery_teardown(di);
 
 	mutex_lock(&battery_mutex);
@@ -251,11 +249,13 @@ static const struct i2c_device_id bq27xxx_i2c_id_table[] = {
 	{ "bq27546", BQ27546 },
 	{ "bq27742", BQ27742 },
 	{ "bq27545", BQ27545 },
+	{ "bq27411", BQ27411 },
 	{ "bq27421", BQ27421 },
 	{ "bq27425", BQ27425 },
 	{ "bq27426", BQ27426 },
 	{ "bq27441", BQ27441 },
 	{ "bq27621", BQ27621 },
+	{ "bq27z561", BQ27Z561 },
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, bq27xxx_i2c_id_table);
@@ -283,11 +283,13 @@ static const struct of_device_id bq27xxx_battery_i2c_of_match_table[] = {
 	{ .compatible = "ti,bq27546" },
 	{ .compatible = "ti,bq27742" },
 	{ .compatible = "ti,bq27545" },
+	{ .compatible = "ti,bq27411" },
 	{ .compatible = "ti,bq27421" },
 	{ .compatible = "ti,bq27425" },
 	{ .compatible = "ti,bq27426" },
 	{ .compatible = "ti,bq27441" },
 	{ .compatible = "ti,bq27621" },
+	{ .compatible = "ti,bq27z561" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bq27xxx_battery_i2c_of_match_table);

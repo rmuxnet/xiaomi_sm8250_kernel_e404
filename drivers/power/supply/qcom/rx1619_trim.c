@@ -66,7 +66,6 @@ static int rx1619_1_write(struct rx1619_1_chg *chip, u8 val, u16 addr)
 
 void rx1619_1_trim(void)
 {
-	printk("--------------rx1619_1_trim++\n");
 
 	/************prepare_for_mtp_write************/
 	rx1619_1_write(g_chip, 0x69, 0x2017);
@@ -79,7 +78,6 @@ void rx1619_1_trim(void)
 	rx1619_1_write(g_chip, 0xa5, 0x0003);
 	/************prepare_for_mtp_write************/
 
-	printk("--------------rx1619_1_trim--\n");
 }
 
 // first step: define regmap_config
@@ -153,7 +151,7 @@ static int __init rx1619_1_init(void)
 #endif
 	ret = i2c_add_driver(&rx1619_1_driver);
 	if (ret)
-		printk(KERN_ERR "rx1619_1 i2c driver init failed!\n");
+		pr_err("rx1619_1 i2c driver init failed!\n");
 
 	return ret;
 }

@@ -1,15 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright 2015-2017 Google, Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 #ifndef __LINUX_USB_PD_H
@@ -104,8 +95,19 @@ enum pd_ext_msg_type {
 	 (((cnt) & PD_HEADER_CNT_MASK) << PD_HEADER_CNT_SHIFT) |	\
 	 ((ext_hdr) ? PD_HEADER_EXT_HDR : 0))
 
-#define PD_HEADER_LE(type, pwr, data, rev, id, cnt) \
-	cpu_to_le16(PD_HEADER((type), (pwr), (data), (rev), (id), (cnt), (0)))
+#define PD_HEADER_LE(type, pwr, data, rev, id, cnt, ext_hdr) \
+	cpu_to_le16(PD_HEADER((type), (pwr), (data), (rev), (id), (cnt),\
+			      (ext_hdr)))
+
+#define PD_HEADER_SOP_PRIME(type, id, cnt, rev)				\
+	  ((((type) & PD_HEADER_TYPE_MASK) << PD_HEADER_TYPE_SHIFT) |	\
+	  (rev << PD_HEADER_REV_SHIFT) |				\
+	  (((id) & PD_HEADER_ID_MASK) << PD_HEADER_ID_SHIFT) |		\
+	  (((cnt) & PD_HEADER_CNT_MASK) << PD_HEADER_CNT_SHIFT))
+
+#define PD_HEADER_SOP_PRIME_LE(type, id, cnt, rev) \
+	cpu_to_le16(PD_HEADER_SOP_PRIME((type), (id), (cnt), (rev)))
+
 
 static inline unsigned int pd_header_cnt(u16 header)
 {
@@ -182,6 +184,7 @@ static inline unsigned int pd_ext_header_data_size_le(__le16 ext_header)
 
 #define PD_MAX_PAYLOAD		7
 #define PD_EXT_MAX_CHUNK_DATA	26
+#define PD_MAX_EXT_MSG_LEN	260
 
 /**
   * struct pd_chunked_ext_message_data - PD chunked extended message data as
@@ -233,6 +236,8 @@ enum pd_pdo_type {
 #define PDO_FIXED_EXTPOWER	BIT(27) /* Externally powered */
 #define PDO_FIXED_USB_COMM	BIT(26) /* USB communications capable */
 #define PDO_FIXED_DATA_SWAP	BIT(25) /* Data role swap supported */
+#define PDO_FIXED_UNCHUNK_EXT	BIT(24) /* Unchunked Ext. Msg. supp (Source) */
+#define PDO_FIXED_FRS_CURR_MASK	(BIT(24) | BIT(23)) /* FR_Swap Current (Sink) */
 #define PDO_FIXED_VOLT_SHIFT	10	/* 50mV units */
 #define PDO_FIXED_CURR_SHIFT	0	/* 10mA units */
 
@@ -434,13 +439,14 @@ static inline unsigned int rdo_max_power(u32 rdo)
 #define PD_T_SENDER_RESPONSE	60	/* 24 - 30 ms, relaxed */
 #define PD_T_SOURCE_ACTIVITY	45
 #define PD_T_SINK_ACTIVITY	135
-#define PD_T_SINK_WAIT_CAP	310	/* 310 - 620 ms */
+#define PD_T_SINK_WAIT_CAP	310     /* 310 - 620ms */
 #define PD_T_PS_TRANSITION	500
 #define PD_T_SRC_TRANSITION	35
 #define PD_T_DRP_SNK		40
 #define PD_T_DRP_SRC		30
 #define PD_T_PS_SOURCE_OFF	920
 #define PD_T_PS_SOURCE_ON	480
+#define PD_T_PS_SOURCE_ON_PRS	450	/* 390 - 480ms */
 #define PD_T_PS_HARD_RESET	30
 #define PD_T_SRC_RECOVER	760
 #define PD_T_SRC_RECOVER_MAX	1000
@@ -451,6 +457,10 @@ static inline unsigned int rdo_max_power(u32 rdo)
 #define PD_T_ERROR_RECOVERY	100	/* minimum 25 is insufficient */
 #define PD_T_SRCSWAPSTDBY      625     /* Maximum of 650ms */
 #define PD_T_NEWSRC            250     /* Maximum of 275ms */
+#define PD_T_SINK_TX		16	/* 16 - 20 ms */
+#define PD_T_CHUNK_NOT_SUPP	42	/* 40 - 50 ms */
+#define PD_T_CHUNK_SENDER_RESPONSE	30	/* 24 - 30 ms */
+#define PD_T_CHUNK_SENDER_REQUEST	30	/* 24 - 30 ms */
 #define PD_T_SWAP_SRC_START	20	/* Minimum of 20ms */
 
 #define PD_T_DRP_TRY		100	/* 75 - 150 ms */
@@ -462,4 +472,6 @@ static inline unsigned int rdo_max_power(u32 rdo)
 #define PD_N_CAPS_COUNT		(PD_T_NO_RESPONSE / PD_T_SEND_SOURCE_CAP)
 #define PD_N_HARD_RESET_COUNT	2
 
+#define PD_P_SNK_STDBY_5V	500	/* 2500 mw - 500mA @ 5V */
+#define PD_P_SNK_STDBY		2500	/* 2500 mW */
 #endif /* __LINUX_USB_PD_H */

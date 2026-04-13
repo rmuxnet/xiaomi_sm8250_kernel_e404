@@ -2,7 +2,6 @@
  * ln8000-charger.h - Charger driver for LIONSEMI LN8000
  *
  * Copyright (C) 2021 Lion Semiconductor Inc.
- * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -250,6 +249,41 @@ enum ln8000_adc_hibernate_delay_desc {
 #define BUS_OCP_FOR_QC3P5_CLASS_B		3500000
 #define BUS_OCP_ALARM_FOR_QC3P5_CLASS_B	3200000
 
+/* TI ALARM STATUS */
+#define	BAT_OVP_FAULT_SHIFT			0
+#define	BAT_OCP_FAULT_SHIFT			1
+#define	BUS_OVP_FAULT_SHIFT			2
+#define	BUS_OCP_FAULT_SHIFT			3
+#define	BAT_THERM_FAULT_SHIFT			4
+#define	BUS_THERM_FAULT_SHIFT			5
+#define	DIE_THERM_FAULT_SHIFT			6
+
+#define	BAT_OVP_FAULT_MASK		(1 << BAT_OVP_FAULT_SHIFT)
+#define	BAT_OCP_FAULT_MASK		(1 << BAT_OCP_FAULT_SHIFT)
+#define	BUS_OVP_FAULT_MASK		(1 << BUS_OVP_FAULT_SHIFT)
+#define	BUS_OCP_FAULT_MASK		(1 << BUS_OCP_FAULT_SHIFT)
+#define	BAT_THERM_FAULT_MASK		(1 << BAT_THERM_FAULT_SHIFT)
+#define	BUS_THERM_FAULT_MASK		(1 << BUS_THERM_FAULT_SHIFT)
+#define	DIE_THERM_FAULT_MASK		(1 << DIE_THERM_FAULT_SHIFT)
+
+#define	BAT_OVP_ALARM_SHIFT			0
+#define	BAT_OCP_ALARM_SHIFT			1
+#define	BUS_OVP_ALARM_SHIFT			2
+#define	BUS_OCP_ALARM_SHIFT			3
+#define	BAT_THERM_ALARM_SHIFT			4
+#define	BUS_THERM_ALARM_SHIFT			5
+#define	DIE_THERM_ALARM_SHIFT			6
+#define BAT_UCP_ALARM_SHIFT			7
+
+#define	BAT_OVP_ALARM_MASK		(1 << BAT_OVP_ALARM_SHIFT)
+#define	BAT_OCP_ALARM_MASK		(1 << BAT_OCP_ALARM_SHIFT)
+#define	BUS_OVP_ALARM_MASK		(1 << BUS_OVP_ALARM_SHIFT)
+#define	BUS_OCP_ALARM_MASK		(1 << BUS_OCP_ALARM_SHIFT)
+#define	BAT_THERM_ALARM_MASK		(1 << BAT_THERM_ALARM_SHIFT)
+#define	BUS_THERM_ALARM_MASK		(1 << BUS_THERM_ALARM_SHIFT)
+#define	DIE_THERM_ALARM_MASK		(1 << DIE_THERM_ALARM_SHIFT)
+#define	BAT_UCP_ALARM_MASK		(1 << BAT_UCP_ALARM_SHIFT)
+
 /**
  * driver instance structure definition
  */
@@ -274,7 +308,6 @@ struct ln8000_platform_data {
     bool tbat_mon_disable;          /* disable BAT temperature monitor (prot/alarm) */
     bool tdie_prot_disable;         /* disable die temperature protection */
     bool tdie_reg_disable;          /* disable die temperature regulation */
-    bool revcurr_prot_disable;      /* disable reverse current protection */
 };
 
 struct ln8000_info {
@@ -343,9 +376,8 @@ struct ln8000_info {
 	bool standalone_mode_master;
 	bool standalone_mode_slave;
 
-    /* debugfs */
-    struct dentry *debug_root;
-    u32 debug_address;
+	/* logging */
+    struct logbuffer *log;
 };
 
 #endif  /* __LN8000_CHARGER_H__ */

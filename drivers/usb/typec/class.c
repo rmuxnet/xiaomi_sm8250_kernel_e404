@@ -143,6 +143,7 @@ static void typec_report_identity(struct device *dev)
 	sysfs_notify(&dev->kobj, "identity", "id_header");
 	sysfs_notify(&dev->kobj, "identity", "cert_stat");
 	sysfs_notify(&dev->kobj, "identity", "product");
+	kobject_uevent(&dev->kobj, KOBJ_CHANGE);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -189,13 +190,11 @@ static void typec_altmode_put_partner(struct altmode *altmode)
 {
 	struct altmode *partner = altmode->partner;
 	struct typec_altmode *adev;
-	struct typec_altmode *partner_adev;
 
 	if (!partner)
 		return;
 
-	adev = &altmode->adev;
-	partner_adev = &partner->adev;
+	adev = &partner->adev;
 
 	if (is_typec_plug(adev->dev.parent)) {
 		struct typec_plug *plug = to_typec_plug(adev->dev.parent);
@@ -204,7 +203,7 @@ static void typec_altmode_put_partner(struct altmode *altmode)
 	} else {
 		partner->partner = NULL;
 	}
-	put_device(&partner_adev->dev);
+	put_device(&adev->dev);
 }
 
 static int typec_port_fwnode_match(struct device *dev, const void *fwnode)
@@ -479,11 +478,9 @@ static void typec_altmode_release(struct device *dev)
 {
 	struct altmode *alt = to_altmode(to_typec_altmode(dev));
 
-	if (!is_typec_port(dev->parent))
-		typec_altmode_put_partner(alt);
+	typec_altmode_put_partner(alt);
 
 	altmode_id_remove(alt->adev.dev.parent, alt->id);
-	put_device(alt->adev.dev.parent);
 	kfree(alt);
 }
 
@@ -532,8 +529,6 @@ typec_register_altmode(struct device *parent,
 	alt->adev.dev.groups = alt->groups;
 	alt->adev.dev.type = &typec_altmode_dev_type;
 	dev_set_name(&alt->adev.dev, "%s.%u", dev_name(parent), id);
-
-	get_device(alt->adev.dev.parent);
 
 	/* Link partners and plugs with the ports */
 	if (is_port)
@@ -1348,7 +1343,7 @@ void typec_set_pwr_role(struct typec_port *port, enum typec_role role)
 EXPORT_SYMBOL_GPL(typec_set_pwr_role);
 
 /**
- * typec_set_pwr_role - Report VCONN source change
+ * typec_set_vconn_role - Report VCONN source change
  * @port: The USB Type-C Port which VCONN role changed
  * @role: Source when @port is sourcing VCONN, or Sink when it's not
  *
@@ -1388,9 +1383,6 @@ void typec_set_pwr_opmode(struct typec_port *port,
 
 	if ((port->pwr_opmode == opmode) || (opmode < TYPEC_PWR_MODE_USB) ||
 						(opmode > TYPEC_PWR_MODE_MAX))
-		return;
-
-	if (opmode > TYPEC_PWR_MODE_PD)
 		return;
 
 	port->pwr_opmode = opmode;

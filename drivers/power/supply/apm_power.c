@@ -163,7 +163,7 @@ static int do_calculate_time(int status, enum apm_source source)
 		cur_now_prop = POWER_SUPPLY_PROP_VOLTAGE_NOW;
 		break;
 	default:
-		printk(KERN_ERR "Unsupported source: %d\n", source);
+		pr_err("Unsupported source: %d\n", source);
 		return -1;
 	}
 
@@ -244,7 +244,7 @@ static int calculate_capacity(enum apm_source source)
 		avg_prop = POWER_SUPPLY_PROP_VOLTAGE_AVG;
 		break;
 	default:
-		printk(KERN_ERR "Unsupported source: %d\n", source);
+		pr_err("Unsupported source: %d\n", source);
 		return -1;
 	}
 

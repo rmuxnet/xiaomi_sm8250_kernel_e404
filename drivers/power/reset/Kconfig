@@ -101,6 +101,8 @@ config POWER_RESET_HISI
 config POWER_RESET_MSM
 	bool "Qualcomm MSM power-off driver"
 	depends on ARCH_QCOM
+	depends on POWER_RESET_QCOM!=m
+	depends on POWER_RESET_QCOM!=y
 	help
 	  Power off and restart support for Qualcomm boards.
 
@@ -140,9 +142,8 @@ config POWER_RESET_LTC2952
 	  down via the LTC2952. Bindings are made in the device tree.
 
 config POWER_RESET_QCOM
-	bool "Qualcomm Technologies, Inc. MSM power-off driver"
+	tristate "Qualcomm Technologies, Inc. MSM power-off driver"
 	depends on ARCH_MSM || ARCH_QCOM
-	depends on POWER_RESET
 	help
 	  Power off and restart support for Qualcomm Technologies, Inc. boards.
 	  This driver supports board power down and restart using PMIC PS_HOLD.
@@ -245,6 +246,21 @@ config SYSCON_REBOOT_MODE
 	  get reboot mode arguments and store it in SYSCON mapped
 	  register, then the bootloader can read it to take different
 	  action according to the mode.
+
+config DEBUG_REBOOT
+        bool "Add support for triggering debug reboot commands"
+        help
+          Say y here to add support for reboot commands that triggers
+          intentional watchdog or panics. Note that it is still required
+          to either set Y to the enable module parameter or choose
+          CONFIG_DEBUG_REBOOT_DEFAULT_ON to enable this feature.
+
+config DEBUG_REBOOT_DEFAULT_ON
+        bool "Default enable debug reboot commands"
+        depends on DEBUG_REBOOT
+        help
+          Say y here to default enable reboot commands to trigger
+          intentional watchdogs or panics.
 
 config POWER_RESET_SC27XX
 	bool "Spreadtrum SC27xx PMIC power-off driver"

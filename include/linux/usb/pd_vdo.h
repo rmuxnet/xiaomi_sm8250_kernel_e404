@@ -1,15 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright 2015-2017 Google, Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 #ifndef __LINUX_USB_PD_VDO_H
@@ -25,27 +16,33 @@
 #define VDO_MAX_OBJECTS		6
 #define VDO_MAX_SIZE		(VDO_MAX_OBJECTS + 1)
 
+#define SVDM_V10		0
+#define SVDM_V20		1
+#define SVDM_MAX_VER		SVDM_V20
+
 /*
  * VDM header
  * ----------
  * <31:16>  :: SVID
  * <15>     :: VDM type ( 1b == structured, 0b == unstructured )
- * <14:13>  :: Structured VDM version (can only be 00 == 1.0 currently)
+ * <14:13>  :: Structured VDM version
  * <12:11>  :: reserved
  * <10:8>   :: object position (1-7 valid ... used for enter/exit mode only)
  * <7:6>    :: command type (SVDM only?)
  * <5>      :: reserved (SVDM), command type (UVDM)
  * <4:0>    :: command
  */
-#define VDO(vid, type, custom)				\
+#define VDO(vid, type, ver, custom)				\
 	(((vid) << 16) |				\
 	 ((type) << 15) |				\
+	 ((ver) << 13) |				\
 	 ((custom) & 0x7FFF))
 
 #define VDO_SVDM_TYPE		(1 << 15)
 #define VDO_SVDM_VERS(x)	((x) << 13)
 #define VDO_OPOS(x)		((x) << 8)
 #define VDO_CMDT(x)		((x) << 6)
+#define VDO_SVDM_VERS_MASK	VDO_SVDM_VERS(0x3)
 #define VDO_OPOS_MASK		VDO_OPOS(0x7)
 #define VDO_CMDT_MASK		VDO_CMDT(0x3)
 
@@ -83,6 +80,7 @@
 
 #define PD_VDO_VID(vdo)		((vdo) >> 16)
 #define PD_VDO_SVDM(vdo)	(((vdo) >> 15) & 1)
+#define PD_VDO_SVDM_VER(vdo)	(((vdo) >> 13) & 0x3)
 #define PD_VDO_OPOS(vdo)	(((vdo) >> 8) & 0x7)
 #define PD_VDO_CMD(vdo)		((vdo) & 0x1f)
 #define PD_VDO_CMDT(vdo)	(((vdo) >> 6) & 0x3)
@@ -98,7 +96,7 @@
  * [2] :: Cert Stat VDO
  * [3] :: (Product | Cable) VDO
  * [4] :: AMA VDO
- *
+ * [4] :: VPD VDO
  */
 #define VDO_INDEX_HDR		0
 #define VDO_INDEX_IDH		1
@@ -106,31 +104,52 @@
 #define VDO_INDEX_CABLE		3
 #define VDO_INDEX_PRODUCT	3
 #define VDO_INDEX_AMA		4
+#define VDO_INDEX_VPD		4
 
 /*
  * SVDM Identity Header
  * --------------------
  * <31>     :: data capable as a USB host
  * <30>     :: data capable as a USB device
- * <29:27>  :: product type
+ * <29:27>  :: product type (UFP or Cable Plug)
  * <26>     :: modal operation supported (1b == yes)
- * <25:16>  :: Reserved, Shall be set to zero
+ * <25:23>  :: product type (DFP) (SVDM version 2.0 only; Shall be set to zero
+ *             if SVDM version is 1.0)
+ * <22:16>  :: Reserved, Shall be set to zero
  * <15:0>   :: USB-IF assigned VID for this cable vendor
  */
 #define IDH_PTYPE_UNDEF		0
 #define IDH_PTYPE_HUB		1
 #define IDH_PTYPE_PERIPH	2
+#define IDH_PTYPE_HOST		2
+#define IDH_PTYPE_PSD		3
 #define IDH_PTYPE_PCABLE	3
+#define IDH_PTYPE_BRICK		3
 #define IDH_PTYPE_ACABLE	4
+#define IDH_PTYPE_AMC		4
 #define IDH_PTYPE_AMA		5
+#define IDH_PTYPE_VPD		6
 
-#define VDO_IDH(usbh, usbd, ptype, is_modal, vid)		\
-	((usbh) << 31 | (usbd) << 30 | ((ptype) & 0x7) << 27	\
-	 | (is_modal) << 26 | ((vid) & 0xffff))
+#define IDH_USB_HOST		(1 << 31)
+#define IDH_USB_DEVICE		(1 << 30)
+#define IDH_PT_UFP_PLUG_SHIFT	27
+#define IDH_PT_UFP_PLUG_MASK	(0x7 << IDH_PT_UFP_PLUG_SHIFT)
+#define IDH_MODAL_SUPP		(1 << 26)
+#define IDH_PT_DFP_SHIFT	23
+#define IDH_PT_DFP_MASK		(0x7 << IDH_PT_DFP_SHIFT)
 
-#define PD_IDH_PTYPE(vdo)	(((vdo) >> 27) & 0x7)
+#define IDH_PT_UFP_PLUG(type)	(((type) << IDH_PT_UFP_PLUG_SHIFT)	\
+				 & IDH_PT_UFP_PLUG_MASK)
+#define IDH_PT_DFP(type)	(((type) << IDH_PT_DFP_SHIFT) & IDH_PT_DFP_MASK)
+
+#define VDO_IDH(flags, pt_ufp_plug, pt_dfp, vid)		\
+	((flags) | IDH_PT_UFP_PLUG(pt_ufp_plug)			\
+	 | IDH_PT_DFP(pt_dfp) | ((vid) & 0xffff))
+
+#define PD_IDH_PTYPE(vdo)	(((vdo) >> IDH_PT_UFP_PLUG_SHIFT) & 0x7)
+#define PD_IDH_PTYPE_DFP(vdo)	(((vdo) >> IDH_PT_DFP_SHIFT) & 0x7)
 #define PD_IDH_VID(vdo)		((vdo) & 0xffff)
-#define PD_IDH_MODAL_SUPP(vdo)	((vdo) & (1 << 26))
+#define PD_IDH_MODAL_SUPP(vdo)	((vdo) & IDH_MODAL_SUPP)
 
 /*
  * Cert Stat VDO
@@ -138,6 +157,7 @@
  * <31:0>  : USB-IF assigned XID for this cable
  */
 #define PD_CSTAT_XID(vdo)	(vdo)
+#define VDO_CERT(xid)		((xid) & 0xffffffff)
 
 /*
  * Product VDO

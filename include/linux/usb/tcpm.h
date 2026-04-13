@@ -1,15 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright 2015-2017 Google, Inc
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  */
 
 #ifndef __LINUX_USB_TCPM_H
@@ -27,6 +18,10 @@ enum typec_cc_status {
 	TYPEC_CC_RP_1_5,
 	TYPEC_CC_RP_3_0,
 };
+
+/* Collision Avoidance */
+#define SINK_TX_NG	TYPEC_CC_RP_1_5
+#define SINK_TX_OK	TYPEC_CC_RP_3_0
 
 enum typec_cc_polarity {
 	TYPEC_POLARITY_CC1,
@@ -53,6 +48,25 @@ enum tcpm_transmit_type {
 	TCPC_TX_HARD_RESET = 5,
 	TCPC_TX_CABLE_RESET = 6,
 	TCPC_TX_BIST_MODE_2 = 7
+};
+
+enum usb_pd_sop_type {
+	SOP = 0,
+	SOP_PRIME = 1,
+	SOP_PRIME_PRIME = 2,
+};
+
+#define FRAME_FILTER_EN_SOP            BIT(0)
+#define FRAME_FILTER_EN_SOPI           BIT(1)
+#define FRAME_FILTER_EN_SOPII          BIT(2)
+#define FRAME_FILTER_EN_SOPI_DEBUG     BIT(3)
+#define FRAME_FILTER_EN_SOPII_DEBUG    BIT(4)
+#define FRAME_FILTER_EN_HARD_RESET     BIT(5)
+#define FRAME_FILTER_EN_CABLE_RESET    BIT(6)
+
+enum chunk_tx_source {
+	POLICY_ENGINE,
+	PROTOCOL_LAYER,
 };
 
 /**
@@ -103,6 +117,8 @@ struct tcpc_config {
  * struct tcpc_dev - Port configuration and callback functions
  * @config:	Pointer to port configuration
  * @fwnode:	Pointer to port fwnode
+ * @port_type_override:
+ *              Indicating whether port_type is overridden by tcpc_config
  * @get_vbus:	Called to read current VBUS state
  * @get_current_limit:
  *		Optional; called by the tcpm core when configured as a snk
@@ -127,11 +143,23 @@ struct tcpc_config {
  *		automatically if a connection is established.
  * @try_role:	Optional; called to set a preferred role
  * @pd_transmit:Called to transmit PD message
- * @mux:	Pointer to multiplexer data
+ * @set_pd_capable:
+ *		Optional; Called to notify that pd capable partner has been
+ *		detected.
+ * @set_in_hard_reset:
+ *		Optional; Called to notify that hard reset is in progress.
+ * @mux:	Pointer to multiplexer data.
+ * @is_vbus_vsafe0v:
+ *		Optional; TCPCI spec based TCPC implementations are expected to
+ *		detect VSAFE0V voltage level at vbus. When detection of VSAFE0V
+ *		is supported by TCPC, set this callback for TCPM to query
+ *		whether vbus is at VSAFE0V when needed.
+ *		Returns true when vbus is at VSAFE0V, false otherwise.
  */
 struct tcpc_dev {
 	const struct tcpc_config *config;
 	struct fwnode_handle *fwnode;
+	bool port_type_override;
 
 	int (*init)(struct tcpc_dev *dev);
 	int (*get_vbus)(struct tcpc_dev *dev);
@@ -144,15 +172,24 @@ struct tcpc_dev {
 	int (*set_vconn)(struct tcpc_dev *dev, bool on);
 	int (*set_vbus)(struct tcpc_dev *dev, bool on, bool charge);
 	int (*set_current_limit)(struct tcpc_dev *dev, u32 max_ma, u32 mv);
-	int (*set_pd_rx)(struct tcpc_dev *dev, bool on);
+	int (*set_pd_rx)(struct tcpc_dev *dev, bool on, int frame_filter);
 	int (*set_roles)(struct tcpc_dev *dev, bool attached,
-			 enum typec_role role, enum typec_data_role data);
+			 enum typec_role role, enum typec_data_role data,
+			 bool usb_comm_capable);
 	int (*start_toggling)(struct tcpc_dev *dev,
 			      enum typec_port_type port_type,
 			      enum typec_cc_status cc);
 	int (*try_role)(struct tcpc_dev *dev, int role);
 	int (*pd_transmit)(struct tcpc_dev *dev, enum tcpm_transmit_type type,
-			   const struct pd_message *msg);
+			   const struct pd_message *msg, unsigned int negotiated_rev);
+	int (*set_in_pr_swap)(struct tcpc_dev *dev, bool pr_swap);
+	void (*set_pd_capable)(struct tcpc_dev *dev, bool capable);
+	void (*set_in_hard_reset)(struct tcpc_dev *dev, bool status);
+	void (*log_rtc)(struct tcpc_dev *dev);
+	int (*set_suspend_supported)(struct tcpc_dev *dev,
+				     bool suspend_supported);
+	bool (*is_vbus_vsafe0v)(struct tcpc_dev *dev);
+	bool fixed_5V3A;
 };
 
 struct tcpm_port;
@@ -169,10 +206,14 @@ int tcpm_update_sink_capabilities(struct tcpm_port *port, const u32 *pdo,
 void tcpm_vbus_change(struct tcpm_port *port);
 void tcpm_cc_change(struct tcpm_port *port);
 void tcpm_pd_receive(struct tcpm_port *port,
-		     const struct pd_message *msg);
+		     const struct pd_message *msg,
+		     enum usb_pd_sop_type packet);
 void tcpm_pd_transmit_complete(struct tcpm_port *port,
 			       enum tcpm_transmit_status status);
 void tcpm_pd_hard_reset(struct tcpm_port *port);
 void tcpm_tcpc_reset(struct tcpm_port *port);
+int tcpm_get_partner_src_caps(struct tcpm_port *port, u32 **pdo);
+void tcpm_put_partner_src_caps(u32 **pdo);
+void tcpm_port_reset(struct tcpm_port *port);
 
 #endif /* __LINUX_USB_TCPM_H */

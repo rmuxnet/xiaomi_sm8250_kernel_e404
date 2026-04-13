@@ -1161,7 +1161,7 @@ static int __init ln8282_init(void)
 #endif
 	ret = i2c_add_driver(&ln8282_driver);
 	if (ret)
-		printk(KERN_ERR "ln8282 i2c driver init failed!\n");
+		pr_err("ln8282 i2c driver init failed!\n");
 
 	return ret;
 }

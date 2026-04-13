@@ -380,8 +380,10 @@ bool is_input_present(struct fg_dev *fg)
 
 void fg_notify_charger(struct fg_dev *fg)
 {
+#ifndef CONFIG_GOOGLE_BMS
 	union power_supply_propval prop = {0, };
 	int rc;
+#endif
 
 	if (!fg->batt_psy)
 		return;
@@ -389,6 +391,11 @@ void fg_notify_charger(struct fg_dev *fg)
 	if (!fg->profile_available)
 		return;
 
+	/*
+	 * FIX_ME, b/139264914, don't set charger in qg, it should set by
+	 * google_charger
+	*/
+#ifndef CONFIG_GOOGLE_BMS
 	if (fg->bp.float_volt_uv > 0) {
 		prop.intval = fg->bp.float_volt_uv;
 		rc = power_supply_set_property(fg->batt_psy,
@@ -411,6 +418,7 @@ void fg_notify_charger(struct fg_dev *fg)
 			return;
 		}
 	}
+#endif
 }
 
 bool batt_psy_initialized(struct fg_dev *fg)
@@ -418,7 +426,11 @@ bool batt_psy_initialized(struct fg_dev *fg)
 	if (fg->batt_psy)
 		return true;
 
+#ifdef CONFIG_GOOGLE_BMS
+	fg->batt_psy = power_supply_get_by_name("sm8150_bms");
+#else
 	fg->batt_psy = power_supply_get_by_name("battery");
+#endif
 	if (!fg->batt_psy)
 		return false;
 
@@ -890,71 +902,32 @@ int fg_get_msoc_raw(struct fg_dev *fg, int *val)
 		return -EINVAL;
 	}
 
+	fg_dbg(fg, FG_POWER_SUPPLY, "raw: 0x%02x\n", cap[0]);
 	*val = cap[0];
 	return 0;
 }
 
-static bool optimized_soc_flag;
 int fg_get_msoc(struct fg_dev *fg, int *msoc)
 {
 	int rc;
-	int raw_msoc;
 
 	rc = fg_get_msoc_raw(fg, msoc);
 	if (rc < 0)
 		return rc;
 
-	rc = fg_get_msoc_raw(fg, &raw_msoc);
-	if (rc < 0)
-		return rc;
-
-	if (fg->param.smooth_batt_flag) {
-		if (raw_msoc >= 255) {
-			*msoc = FULL_CAPACITY;
-		} else if (raw_msoc >= 252 && !optimized_soc_flag && fg->report_full) {
-			*msoc = FULL_CAPACITY;
-			optimized_soc_flag = true;
-		} else if (raw_msoc >= 252 && !optimized_soc_flag && !fg->report_full) {
-			*msoc = FULL_CAPACITY - 1;
-		} else if (raw_msoc >= 245 && !optimized_soc_flag) {
-			*msoc = FULL_CAPACITY - 1;
-		} else if (raw_msoc >= 245 && optimized_soc_flag){
-			*msoc = FULL_CAPACITY;
-		} else if (raw_msoc > 19) {
-			*msoc = DIV_ROUND_CLOSEST(raw_msoc * FULL_CAPACITY, FULL_SOC_RAW) + 3;
-		} else if (raw_msoc > 0) {
-			*msoc = raw_msoc / 2 + 1;
-		} else if (raw_msoc == 0) {
-			*msoc = 0;
-		} else {
-			*msoc = 0;
-		}
-
-		if (raw_msoc < 245)
-			optimized_soc_flag = false;
-	} else {
-		/*
-		 * To have better endpoints for 0 and 100, it is good to tune the
-		 * calculation discarding values 0 and 255 while rounding off. Rest
-		 * of the values 1-254 will be scaled to 1-99. DIV_ROUND_UP will not
-		 * be suitable here as it rounds up any value higher than 252 to 100.
-		 */
-		if ((*msoc >= FULL_SOC_REPORT_THR - 2)
-					&& (*msoc < FULL_SOC_RAW) && fg->report_full) {
-			*msoc = DIV_ROUND_CLOSEST(*msoc * FULL_CAPACITY, FULL_SOC_RAW) + 1;
-			if (*msoc >= FULL_CAPACITY)
-				*msoc = FULL_CAPACITY;
-		} else if (*msoc == FULL_SOC_RAW)
-			*msoc = 100;
-		else if (*msoc == 0)
-			*msoc = 0;
-		else if (*msoc >= FULL_SOC_REPORT_THR - 4 && *msoc <= FULL_SOC_REPORT_THR - 3 && fg->report_full)
-			*msoc = DIV_ROUND_CLOSEST(*msoc * FULL_CAPACITY, FULL_SOC_RAW);
-		else
-			*msoc = DIV_ROUND_CLOSEST((*msoc - 1) * (FULL_CAPACITY - 2),
-					FULL_SOC_RAW - 2) + 1;
-	}
-
+	/*
+	 * To have better endpoints for 0 and 100, it is good to tune the
+	 * calculation discarding values 0 and 255 while rounding off. Rest
+	 * of the values 1-254 will be scaled to 1-99. DIV_ROUND_UP will not
+	 * be suitable here as it rounds up any value higher than 252 to 100.
+	 */
+	if (*msoc == FULL_SOC_RAW)
+		*msoc = 100;
+	else if (*msoc == 0)
+		*msoc = 0;
+	else
+		*msoc = DIV_ROUND_CLOSEST((*msoc - 1) * (FULL_CAPACITY - 2),
+				FULL_SOC_RAW - 2) + 1;
 	return 0;
 }
 
@@ -1091,6 +1064,7 @@ int fg_get_battery_voltage(struct fg_dev *fg, int *val)
 
 	pr_debug("buf: %x %x temp: %x\n", buf[0], buf[1], temp);
 	*val = div_u64((u64)temp * BATT_VOLTAGE_NUMR, BATT_VOLTAGE_DENR);
+
 	return 0;
 }
 

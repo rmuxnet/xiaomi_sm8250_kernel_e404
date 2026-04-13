@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2012-2015, 2017-2019, The Linux Foundation.
- * Copyright (C) 2021 XiaoMi, Inc.
  * All rights reserved.
  */
 
@@ -55,9 +54,17 @@ enum pon_restart_reason {
 	PON_RESTART_REASON_DMVERITY_CORRUPTED	= 0x04,
 	PON_RESTART_REASON_DMVERITY_ENFORCE	= 0x05,
 	PON_RESTART_REASON_KEYS_CLEAR		= 0x06,
+	PON_RESTART_REASON_WDT			= 0x08,
+	PON_RESTART_REASON_REBOOT_LONGKEY	= 0x09,
+	PON_RESTART_REASON_NORMAL		= 0x20,
+	PON_RESTART_REASON_PANIC		= 0x21,
+	PON_RESTART_REASON_USERSPACE_FASTBOOT	= 0x0A,
+	PON_RESTART_REASON_REBOOT_PMICOFF	= 0x0B,
+	PON_RESTART_REASON_RESCUE		= 0x0C,
+	PON_RESTART_REASON_SHUTDOWN_THERMAL	= 0x0D,
 };
 
-#ifdef CONFIG_INPUT_QPNP_POWER_ON
+#if IS_ENABLED(CONFIG_INPUT_QPNP_POWER_ON)
 int qpnp_pon_system_pwr_off(enum pon_power_off_type type);
 int qpnp_pon_is_warm_reset(void);
 int qpnp_pon_trigger_config(enum pon_trigger_source pon_src, bool enable);

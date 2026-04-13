@@ -77,7 +77,6 @@ struct pl_data {
 	struct power_supply	*dc_psy;
 	struct power_supply	*cp_master_psy;
 	struct power_supply	*cp_slave_psy;
-	struct power_supply	*wireless_psy;
 	int			charge_type;
 	int			total_settled_ua;
 	int			pl_settled_ua;
@@ -1186,7 +1185,7 @@ stepper_exit:
 	cp_configure_ilim(chip, FCC_VOTER, chip->slave_fcc_ua / 2);
 
 	if (reschedule_ms) {
-		queue_delayed_work(system_power_efficient_wq, &chip->fcc_stepper_work,
+		schedule_delayed_work(&chip->fcc_stepper_work,
 				msecs_to_jiffies(reschedule_ms));
 		pr_debug("Rescheduling FCC_STEPPER work\n");
 		return;
@@ -1202,17 +1201,6 @@ static bool is_batt_available(struct pl_data *chip)
 		chip->batt_psy = power_supply_get_by_name("battery");
 
 	if (!chip->batt_psy)
-		return false;
-
-	return true;
-}
-
-static bool is_wireless_available(struct pl_data *chip)
-{
-	if (!chip->wireless_psy)
-		chip->wireless_psy = power_supply_get_by_name("wireless");
-
-	if (!chip->wireless_psy)
 		return false;
 
 	return true;
@@ -1270,18 +1258,6 @@ static int pl_fv_vote_callback(struct votable *votable, void *data,
 				if (rc < 0)
 					pr_err("Couldn't set force recharge rc=%d\n",
 							rc);
-			} else if (is_wireless_available(chip)) {
-				rc = power_supply_get_property(chip->wireless_psy,
-				POWER_SUPPLY_PROP_WIRELESS_POWER_GOOD_EN,
-				&pval);
-				if (pval.intval) {
-					rc = power_supply_set_property(chip->batt_psy,
-						POWER_SUPPLY_PROP_FORCE_RECHARGE,
-						&pval);
-					if (rc < 0)
-						pr_err("Couldn't set force recharge rc=%d\n",
-								rc);
-				}
 			}
 		}
 	}
@@ -1326,7 +1302,7 @@ static int usb_icl_vote_callback(struct votable *votable, void *data,
 	if (icl_ua <= 1400000)
 		vote(chip->pl_enable_votable_indirect, USBIN_I_VOTER, false, 0);
 	else
-		queue_delayed_work(system_power_efficient_wq, &chip->status_change_work,
+		schedule_delayed_work(&chip->status_change_work,
 						msecs_to_jiffies(PL_DELAY_MS));
 
 	/* rerun AICL */
@@ -1476,7 +1452,7 @@ static int pl_disable_vote_callback(struct votable *votable,
 			if (chip->step_fcc) {
 				vote(chip->pl_awake_votable, FCC_STEPPER_VOTER,
 					true, 0);
-				queue_delayed_work(system_power_efficient_wq, &chip->fcc_stepper_work,
+				schedule_delayed_work(&chip->fcc_stepper_work,
 					0);
 			}
 		} else {
@@ -1593,7 +1569,7 @@ static int pl_disable_vote_callback(struct votable *votable,
 			if (chip->step_fcc) {
 				vote(chip->pl_awake_votable, FCC_STEPPER_VOTER,
 					true, 0);
-				queue_delayed_work(system_power_efficient_wq, &chip->fcc_stepper_work,
+				schedule_delayed_work(&chip->fcc_stepper_work,
 					0);
 			}
 		}
@@ -1940,7 +1916,7 @@ static int pl_notifier_call(struct notifier_block *nb,
 	if ((strcmp(psy->desc->name, "parallel") == 0)
 	    || (strcmp(psy->desc->name, "battery") == 0)
 	    || (strcmp(psy->desc->name, "main") == 0))
-		queue_delayed_work(system_power_efficient_wq, &chip->status_change_work, 0);
+		schedule_delayed_work(&chip->status_change_work, 0);
 
 	return NOTIFY_OK;
 }
@@ -2145,6 +2121,7 @@ cleanup:
 	kfree(chip);
 	return rc;
 }
+EXPORT_SYMBOL_GPL(qcom_batt_init);
 
 void qcom_batt_deinit(void)
 {
@@ -2169,3 +2146,7 @@ void qcom_batt_deinit(void)
 	the_chip = NULL;
 	kfree(chip);
 }
+EXPORT_SYMBOL_GPL(qcom_batt_deinit);
+
+MODULE_DESCRIPTION("QPNP Battery driver");
+MODULE_LICENSE("GPL v2");
