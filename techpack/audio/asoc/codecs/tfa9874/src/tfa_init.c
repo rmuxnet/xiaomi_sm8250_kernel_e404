@@ -14,6 +14,11 @@
 #include "../inc/tfa_container.h"
 #include "../inc/tfa98xx_tfafieldnames.h"
 
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
+
  /* The CurrentSense4 registers are not in the datasheet */
 #define TFA98XX_CURRENTSENSE4_CTRL_CLKGATECFOFF (1<<2)
 #define TFA98XX_CURRENTSENSE4 0x49

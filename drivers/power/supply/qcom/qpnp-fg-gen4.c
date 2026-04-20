@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
-#define pr_fmt(fmt)	"FG: %s: " fmt, __func__
+#define pr_fmt(fmt)
 
 #include <linux/alarmtimer.h>
 #include <linux/irq.h>
@@ -27,6 +27,11 @@
 #ifdef CONFIG_E404_ATTRIBUTES
 #include <linux/e404_attributes.h>
 #endif
+
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
 
 #define FG_GEN4_DEV_NAME	"qcom,fg-gen4"
 #define TTF_AWAKE_VOTER		"fg_ttf_awake"

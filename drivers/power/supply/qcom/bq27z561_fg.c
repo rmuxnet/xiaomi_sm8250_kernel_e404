@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  */
 
-#define pr_fmt(fmt)	"[bq27z561] %s: " fmt, __func__
+#define pr_fmt(fmt)
 #include <linux/module.h>
 #include <linux/param.h>
 #include <linux/jiffies.h>

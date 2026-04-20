@@ -25,6 +25,11 @@
 #include "step-chg-jeita.h"
 #include "schgm-flash.h"
 
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
+
 static struct smb_params smb5_pmi632_params = {
 	.fcc			= {
 		.name   = "fast charge current",
@@ -232,7 +237,7 @@ struct smb5 {
 
 static struct smb_charger *__smbchg;
 
-static int __debug_mask = PR_MISC | PR_WLS | PR_OEM | PR_PARALLEL;
+static int __debug_mask = 0;
 
 static ssize_t pd_disabled_show(struct device *dev, struct device_attribute
 				*attr, char *buf)
@@ -1923,7 +1928,7 @@ static int smb5_usb_port_get_prop(struct power_supply *psy,
 		rc = smblib_get_prop_input_current_settled(chg, val);
 		break;
 	default:
-		pr_err_ratelimited("Get prop %d is not supported in pc_port\n",
+		pr_err("Get prop %d is not supported in pc_port\n",
 				psp);
 		return -EINVAL;
 	}
@@ -1944,7 +1949,7 @@ static int smb5_usb_port_set_prop(struct power_supply *psy,
 
 	switch (psp) {
 	default:
-		pr_err_ratelimited("Set prop %d is not supported in pc_port\n",
+		pr_err("Set prop %d is not supported in pc_port\n",
 				psp);
 		rc = -EINVAL;
 		break;

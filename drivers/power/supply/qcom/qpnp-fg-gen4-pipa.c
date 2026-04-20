@@ -3,7 +3,7 @@
  * Copyright (c) 2018-2020 The Linux Foundation. All rights reserved.
  */
 
-#define pr_fmt(fmt)	"FG: %s: " fmt, __func__
+#define pr_fmt(fmt)
 
 #include <linux/alarmtimer.h>
 #include <linux/irq.h>
@@ -22,6 +22,11 @@
 #include "fg-alg.h"
 /* add for get hw country */
 #include <soc/qcom/socinfo.h>
+
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
 
 #define FG_GEN4_DEV_NAME	"qcom,fg-gen4"
 #define TTF_AWAKE_VOTER		"fg_ttf_awake"
@@ -359,7 +364,7 @@ struct bias_config {
 	int	bias_kohms;
 };
 
-static int fg_gen4_debug_mask = FG_STATUS | FG_FVSS | FG_POWER_SUPPLY;
+static int fg_gen4_debug_mask = 0;
 
 static bool is_batt_vendor_gyb;
 static bool is_batt_vendor_nvt;

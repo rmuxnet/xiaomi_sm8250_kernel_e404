@@ -1,5 +1,5 @@
 
-#define pr_fmt(fmt) "[USBPD-PM]: %s: " fmt, __func__
+#define pr_fmt(fmt)
 
 #include <linux/module.h>
 #include <linux/kernel.h>

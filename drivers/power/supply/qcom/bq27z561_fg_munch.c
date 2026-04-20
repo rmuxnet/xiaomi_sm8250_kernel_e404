@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  */
 
-#define pr_fmt(fmt)	"[bq27z561] %s: " fmt, __func__
+#define pr_fmt(fmt)
 #include <linux/module.h>
 #include <linux/param.h>
 #include <linux/jiffies.h>
@@ -39,7 +39,7 @@ enum print_reason {
 	PR_DEBUG	= BIT(3),
 };
 
-static int debug_mask = PR_OEM;
+static int debug_mask = 0;
 module_param_named(
 	debug_mask, debug_mask, int, 0600
 );

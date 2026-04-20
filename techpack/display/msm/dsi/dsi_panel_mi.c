@@ -35,6 +35,11 @@
 #include <linux/e404_attributes.h>
 #endif
 
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
+
 #define to_dsi_display(x) container_of(x, struct dsi_display, host)
 
 static struct dsi_read_config g_dsi_read_cfg;

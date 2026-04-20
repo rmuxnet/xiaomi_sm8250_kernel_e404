@@ -11,7 +11,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#define pr_fmt(fmt)	"[bq2597x] %s: " fmt, __func__
+#define pr_fmt(fmt)
 
 #include <linux/gpio.h>
 #include <linux/i2c.h>
@@ -145,34 +145,13 @@ enum {
 #define IBAT_REG_STATUS_MASK		(1 << VBAT_REG_STATUS_SHIFT)
 
 #define bq_err(fmt, ...)								\
-do {											\
-	if (bq->dev_role == BQ25970_ROLE_MASTER)						\
-		printk(KERN_ERR "[bq2597x-MASTER]:%s:" fmt, __func__, ##__VA_ARGS__);	\
-	else if (bq->dev_role == BQ25970_ROLE_SLAVE)					\
-		printk(KERN_ERR "[bq2597x-SLAVE]:%s:" fmt, __func__, ##__VA_ARGS__);	\
-	else										\
-		printk(KERN_ERR "[bq2597x-STANDALONE]:%s:" fmt, __func__, ##__VA_ARGS__);\
-} while (0);
+do { } while (0);
 
 #define bq_info(fmt, ...)								\
-do {											\
-	if (bq->dev_role == BQ25970_ROLE_MASTER)						\
-		printk(KERN_INFO "[bq2597x-MASTER]:%s:" fmt, __func__, ##__VA_ARGS__);	\
-	else if (bq->dev_role == BQ25970_ROLE_SLAVE)					\
-		printk(KERN_INFO "[bq2597x-SLAVE]:%s:" fmt, __func__, ##__VA_ARGS__);	\
-	else										\
-		printk(KERN_INFO "[bq2597x-STANDALONE]:%s:" fmt, __func__, ##__VA_ARGS__);\
-} while (0);
+do { } while (0);
 
 #define bq_dbg(fmt, ...)								\
-do {											\
-	if (bq->dev_role == BQ25970_ROLE_MASTER)						\
-		printk(KERN_DEBUG "[bq2597x-MASTER]:%s:" fmt, __func__, ##__VA_ARGS__);	\
-	else if (bq->dev_role == BQ25970_ROLE_SLAVE)					\
-		printk(KERN_DEBUG "[bq2597x-SLAVE]:%s:" fmt, __func__, ##__VA_ARGS__);	\
-	else										\
-		printk(KERN_DEBUG "[bq2597x-STANDALONE]:%s:" fmt, __func__, ##__VA_ARGS__);\
-} while (0);
+do { } while (0);
 
 enum hvdcp3_type {
 	HVDCP3_NONE = 0,

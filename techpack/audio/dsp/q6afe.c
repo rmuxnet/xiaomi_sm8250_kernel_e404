@@ -55,6 +55,11 @@ static int apr_err_count = 0;
 #define AFE_PARAM_ID_AWDSP_TX_SET_ENABLE	(0x10013D13)
 #define AFE_PARAM_ID_AWDSP_RX_PARAMS            (0x10013D12)
 
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
+
 static int g_aw_tx_port_id = 0;
 static int g_aw_rx_port_id = 0;
 
@@ -1171,7 +1176,7 @@ static int32_t afe_callback(struct apr_client_data *data, void *priv)
 #ifdef CONFIG_US_PROXIMITY
 	} else if (data->opcode == MI_ULTRASOUND_OPCODE) {
 		if (NULL != data->payload) {
-			printk(KERN_DEBUG "[MIUS] mi ultrasound afe afe cb");
+			pr_debug("[MIUS] mi ultrasound afe afe cb");
 			mius_process_apr_payload(data->payload);
 		} else
 			pr_err("[EXPORT_SYMBOLLUS]: payload ptr is Invalid");
@@ -2415,7 +2420,6 @@ static void afe_send_custom_topology(void)
 	this_afe.set_custom_topology = 0;
 	cal_block = cal_utils_get_only_cal_block(this_afe.cal_data[cal_index]);
 	if (cal_block == NULL || cal_utils_is_cal_stale(cal_block)) {
-		pr_err("%s cal_block not found!!\n", __func__);
 		goto unlock;
 	}
 
@@ -3748,7 +3752,6 @@ static int send_afe_cal_type(int cal_index, int port_id)
 				this_afe.cal_data[cal_index]);
 
 	if (cal_block == NULL || cal_utils_is_cal_stale(cal_block)) {
-		pr_err_ratelimited("%s cal_block not found!!\n", __func__);
 		ret = -EINVAL;
 		goto unlock;
 	}

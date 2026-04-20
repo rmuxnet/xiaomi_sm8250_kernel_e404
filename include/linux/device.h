@@ -1537,20 +1537,26 @@ void _dev_info(const struct device *dev, const char *fmt, ...)
  * possible use of #define dev_fmt(fmt) ...
  */
 
-#define dev_emerg(dev, fmt, ...)					\
-	_dev_emerg(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_crit(dev, fmt, ...)						\
-	_dev_crit(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_alert(dev, fmt, ...)					\
-	_dev_alert(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_err(dev, fmt, ...)						\
-	_dev_err(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_warn(dev, fmt, ...)						\
-	_dev_warn(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_notice(dev, fmt, ...)					\
-	_dev_notice(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_info(dev, fmt, ...)						\
-	_dev_info(dev, dev_fmt(fmt), ##__VA_ARGS__)
+#define dev_emerg(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
+
+#define dev_crit(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
+
+#define dev_alert(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
+
+#define dev_err(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0) /* be careful */
+
+#define dev_warn(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
+
+#define dev_notice(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
+
+#define dev_info(dev, fmt, ...) \
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
 
 #if defined(CONFIG_DYNAMIC_DEBUG)
 #define dev_dbg(dev, fmt, ...)						\

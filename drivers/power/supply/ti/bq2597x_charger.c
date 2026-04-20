@@ -11,7 +11,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#define pr_fmt(fmt) "[bq2597x] %s: " fmt, __func__
+#define pr_fmt(fmt)
 
 #include <linux/gpio.h>
 #include <linux/i2c.h>
@@ -146,7 +146,7 @@ static int bq2597x_mode_data[] = {
 #define VBAT_REG_STATUS_MASK (1 << VBAT_REG_STATUS_SHIFT)
 #define IBAT_REG_STATUS_MASK (1 << VBAT_REG_STATUS_SHIFT)
 
-#define bq_err pr_err
+#define bq_err pr_debug
 #define bq_info pr_debug
 #define bq_dbg pr_debug
 

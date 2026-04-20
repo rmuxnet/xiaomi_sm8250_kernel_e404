@@ -3,7 +3,7 @@
  * Copyright (c) 2017-2019 The Linux Foundation. All rights reserved.
  */
 
-#define pr_fmt(fmt) "QCOM-STEPCHG: %s: " fmt, __func__
+#define pr_fmt(fmt)
 
 #include <linux/delay.h>
 #include <linux/module.h>
@@ -17,6 +17,11 @@
 #define STEP_CHG_VOTER		"STEP_CHG_VOTER"
 #define STEP_BMS_CHG_VOTER	"STEP_BMS_CHG_VOTER"
 #define JEITA_VOTER		"JEITA_VOTER"
+
+#undef pr_info
+#undef pr_err
+#define pr_info pr_debug
+#define pr_err pr_debug
 
 #define is_between(left, right, value) \
 		(((left) >= (right) && (left) >= (value) \
