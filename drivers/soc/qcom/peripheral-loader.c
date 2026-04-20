@@ -1560,7 +1560,7 @@ int pil_desc_init(struct pil_desc *desc)
 	}
 	if (of_property_read_u32(ofnode, "qcom,minidump-id",
 		&desc->minidump_id))
-		pr_err("minidump-id not found for %s\n", desc->name);
+		pr_debug("minidump-id not found for %s\n", desc->name);
 	else {
 		if (g_md_toc && g_md_toc->md_toc_init == true) {
 			ss_toc_addr = &g_md_toc->md_ss_toc[desc->minidump_id];
@@ -1707,9 +1707,11 @@ static int __init msm_pil_init(void)
 	if (!pil_wq)
 		pr_warn("pil: Defaulting to sequential firmware loading.\n");
 
+#ifdef CONFIG_IPC_LOGGING
 	pil_ipc_log = ipc_log_context_create(2, "PIL-IPC", 0);
 	if (!pil_ipc_log)
 		pr_warn("Failed to setup PIL ipc logging\n");
+#endif
 out:
 	return register_pm_notifier(&pil_pm_notifier);
 }
