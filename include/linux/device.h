@@ -1549,8 +1549,7 @@ void _dev_info(const struct device *dev, const char *fmt, ...)
 	_dev_warn(dev, dev_fmt(fmt), ##__VA_ARGS__)
 #define dev_notice(dev, fmt, ...)					\
 	_dev_notice(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#define dev_info(dev, fmt, ...)						\
-	_dev_info(dev, dev_fmt(fmt), ##__VA_ARGS__)
+#define dev_info(dev, fmt, ...)
 
 #if defined(CONFIG_DYNAMIC_DEBUG)
 #define dev_dbg(dev, fmt, ...)						\
