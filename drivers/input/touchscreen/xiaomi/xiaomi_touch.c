@@ -1,4 +1,5 @@
 #include "xiaomi_touch.h"
+#include "pipa-pen.h"
 
 static struct xiaomi_touch_pdata *touch_pdata;
 
@@ -687,6 +688,7 @@ static int xiaomi_touch_probe(struct platform_device *pdev)
 	}
 
 	MI_TOUCH_LOGI(1, "%s %s: over\n", MI_TAG, __func__);
+	pipa_pen_init(pdata);
 
 	return ret;
 
@@ -710,6 +712,7 @@ parse_dt_err:
 
 static int xiaomi_touch_remove(struct platform_device *pdev)
 {
+	pipa_pen_remove();
 	device_destroy(xiaomi_touch_dev.class, 0);
 	class_destroy(xiaomi_touch_dev.class);
 	misc_deregister(&xiaomi_touch_dev.misc_dev);
